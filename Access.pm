@@ -23,25 +23,26 @@
 #
 # Please send comments/suggestions to Tim.Potter@anu.edu.au.
 #
-# $Id: Access.pm,v 1.8 1998/08/31 04:04:08 tpot Exp $
-#
-
-#
-# Copyright (c) 1995,1996,1997,1998 ANU and CSIRO on behalf of the
-# participants in the CRC for Advanced Computational Systems ('ACSys').
-#
-# ACSys makes this software and all associated data and documentation
-# ('Software') available free of charge for non-commercial purposes only.
-# You may make copies of the Software but you must include all of this notice
-# on any copy.
-#
-# The Software was developed for research purposes and ACSys does not warrant
-# that it is error free or fit for any purpose.  ACSys disclaims any
-# liability for all claims, expenses, losses, damages and costs any user may
-# incur as a result of using, copying or modifying the Software.
+# $Id: Access.pm,v 1.10 1998/10/22 02:18:44 tpot Exp $
 #
 
 package Config::Access;
+
+#
+# Copyright (c) 1995,1996,1997,1998 ANU and CSIRO on behalf of the
+# participants in the CRC for Advanced Computational Systems
+# ('ACSys').
+#
+# ACSys makes this software and all associated data and documentation
+# ('Software') available free of charge.  You may make copies of the 
+# Software but you must include all of this notice on any copy.
+#
+# The Software was developed for research purposes and ACSys does not
+# warrant that it is error free or fit for any purpose.  ACSys
+# disclaims any liability for all claims, expenses, losses, damages
+# and costs any user may incur as a result of using, copying or
+# modifying the Software.
+#
 
 use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
@@ -49,7 +50,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK %EXPORT_TAGS);
 my $myclass;
 BEGIN {
     $myclass = __PACKAGE__;
-    $VERSION = "0.01";
+    $VERSION = "0.02";
 }
 sub Version () { "$myclass v$VERSION" }
 
@@ -80,10 +81,10 @@ BEGIN {
 
 # Constants for match type
 
-sub MATCH_ALL      { 1; }     # Match made using an ALL clause
-sub MATCH_SPECIFIC { 2; }     # Specific service/client match
-sub MATCH_FALLTHRU { 3; }     # Allowed because fell through
-sub MATCH_NET_MASK { 4; }     # Matched using network/netmask number
+use constant MATCH_ALL      => 1;  # Match made using an ALL clause
+use constant MATCH_SPECIFIC => 2;  # Specific service/client match
+use constant MATCH_FALLTHRU => 3;  # Allowed because fell through
+use constant MATCH_NET_MASK => 4;  # Matched using network/netmask number
 
 # Return a line from the config file.  Support continuation onto the
 # next line by the a backslash at the end of the line.
@@ -103,7 +104,7 @@ sub read_a_line (*$)
 	$result .= <$FH>;
 	chomp($result);
 
-	@_[1]++;        # Increment line number
+	$_[1]++;        # Increment line number
 
 	last, if !(substr($result, length($result) - 1) eq "\\");
 	$result = substr($result, 0, length($result) - 1);
@@ -142,7 +143,7 @@ sub parse_file ($$)
 		# TODO: syntax check for net/mask format
 
 		foreach $j (split(/,\s+/, $client_list)) {
-		    ${@_[1]}{$i}{$j} = 1;
+		    ${$_[1]}{$i}{$j} = 1;
 		}
 	    }
 	} else {
@@ -320,7 +321,7 @@ sub access_query
 	    print("Allowed $service/$client using specific rule\n");
 	}
 
-	@_[2] = MATCH_SPECIFIC;
+	$_[2] = MATCH_SPECIFIC;
 
 	return 1;
     }
@@ -336,7 +337,7 @@ sub access_query
 	    print("Allowed $service/$client using ALL rule\n");
 	}
 
-	@_[2] = MATCH_ALL;
+	$_[2] = MATCH_ALL;
 
 	return 1;
     }
@@ -351,7 +352,8 @@ sub access_query
 	    print("Allowed $service/$client using network/netmask rule\n");
 	}
 
-	@_[2] = MATCH_NET_MASK;
+	$_[2] = MATCH_NET_MASK;
+
 	return 1;
     }
 
@@ -369,7 +371,7 @@ sub access_query
 	    print("Denied $service/$client using specific rule\n");
 	}
 
-	@_[2] = MATCH_SPECIFIC;
+	$_[2] = MATCH_SPECIFIC;
 
 	return undef;
     }
@@ -386,7 +388,7 @@ sub access_query
 	    print("Denied $service/$client using ALL rule\n");
 	}
 
-	@_[2] = MATCH_ALL;
+	$_[2] = MATCH_ALL;
 
 	return undef;
     }
@@ -401,7 +403,8 @@ sub access_query
 	    print("Denied $service/$client using network/netmask rule\n");
 	}
 
-	@_[2] = MATCH_NET_MASK;
+	$_[2] = MATCH_NET_MASK;
+
 	return undef;
     }
 
@@ -413,7 +416,7 @@ sub access_query
 	print("Allowed $service/$client fell through\n");
     }
 
-    @_[2] = MATCH_FALLTHRU;
+    $_[2] = MATCH_FALLTHRU;
 
     return 1;
 }
@@ -483,12 +486,15 @@ C<Config::Access> - Perform simple access control
 
 The C<Config::Access> module provides a method of authenticating
 arbitrary client/service pairs in a way very similar to that provided
-by the TCP wrappers by Wietse Venema E<lt>wietse@wzv.win.tue.nlE<gt>.
+by the TCP wrappers by Wietse Venema E<lt>wietse@wzv.win.tue.nlE<gt>
+but not limited to inetd services and IP/host names.
 
 This module can be useful for restricting access to certain parts of a
 script to a certain domain.  For example, a front end program to some
 device might deny certain users access to certain commands or only
-allow trusted users access to dangerous commands.
+allow trusted users access to dangerous commands.  The semantics of
+what the client and service names actually mean is totally up to the
+programmer.
 
 The access control language is very similar to the access control
 language specified in hosts_access(5) for the TCP wrappers.  Two
@@ -657,21 +663,13 @@ correspond to the "mostly closed" model of the TCP wrappers.
 
 =head1 COPYRIGHT
 
-C<Config::Access> is a side-effect of a project at work, and as such,
-the intellectual property is owned by the CRC for Advanced
-Computational Systems and the following license applies.  Basically,
-C<Config::Access> is free for non-commercial use but if you want to
-include it in a commercial product, you must negotiate with the CRC
-for Advanced Computational Systems.
-
   Copyright (c) 1995,1996,1997,1998 ANU and CSIRO on behalf of the
   participants in the CRC for Advanced Computational Systems
   ('ACSys').
 
   ACSys makes this software and all associated data and documentation
-  ('Software') available free of charge for non-commercial purposes
-  only.  You may make copies of the Software but you must include all
-  of this notice on any copy.
+  ('Software') available free of charge.  You may make copies of the 
+  Software but you must include all of this notice on any copy.
 
   The Software was developed for research purposes and ACSys does not
   warrant that it is error free or fit for any purpose.  ACSys

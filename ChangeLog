@@ -1,4 +1,20 @@
+1998-10-22  Tim Potter  <tpot@acsys.anu.edu.au>
+
+	* Config-Access-0.02.tar.gz: Uploaded to CPAN.
+
+	* Access.pm: Removed silly "non-commercial use only" license
+	restriction.  Some documentation changes.
+
+1998-09-18  Tim Potter  <tpot@acsys.anu.edu.au>
+
+	* Makefile.PL: Changed VERSION argument to WriteMakefile() to
+	VERSION_FROM to automatically get version number from source
+	code.
+
+	* Access.pm: Changed all occurances of @_[] to $_[] as suggested
+	by perl -w.
+
 1998-08-31  Tim Potter  <tpot@acsys.anu.edu.au>
 
-	* Uploaded version 0.01 to CPAN.
+	* Config-Access-0.01.tar.gz: Uploaded to CPAN.
 
